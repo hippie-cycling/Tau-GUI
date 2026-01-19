@@ -13,7 +13,7 @@ from datetime import datetime
 
 # --- Colors ---
 COLORS = {
-    "base": "#0b1a2e",
+    "base": "#323232",
     "surface0": "#0b1a2e",
     "surface1": "#45475a",
     "text": "#cdd6f4",
@@ -92,7 +92,6 @@ class TauGUI:
         self.current_step_index = 0
 
         self._setup_styles()
-        self._build_menu()
         self._build_layout()
         
         self.update_stats()
@@ -141,13 +140,6 @@ class TauGUI:
         self.ui_font = font.Font(family="Helvetica", size=10)
         self.tiny_font = font.Font(family="Helvetica", size=8)
 
-    def _build_menu(self):
-        menubar = tk.Menu(self.root)
-        self.root.config(menu=menubar)
-        file_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Exit", command=self.root.quit)
-
     def _create_styled_text_widget(self, parent, height=None):
         """Helper to create a Text widget with a styled dark scrollbar."""
         container = tk.Frame(parent, bg=COLORS["base"])
@@ -184,11 +176,18 @@ class TauGUI:
         top_bar = tk.Frame(main_container, bg=COLORS["base"])
         top_bar.pack(fill=tk.X, pady=(0, 5))
         
+        # LEFT: Config & Exit (App Controls)
         self.config_btn = ttk.Button(
             top_bar, text="⚙ Config Tau", style="Action.TButton", command=self.prompt_for_executable
         )
         self.config_btn.pack(side=tk.LEFT)
 
+        self.exit_btn = ttk.Button(
+            top_bar, text="Exit", style="Action.TButton", command=self.root.quit
+        )
+        self.exit_btn.pack(side=tk.LEFT, padx=5)
+
+        # RIGHT: Script Controls (Pack Order: Status <- Step <- Load)
         self.script_status = tk.Label(
             top_bar, text="No script loaded", bg=COLORS["base"], fg=COLORS["surface1"], font=self.ui_font
         )
@@ -214,7 +213,6 @@ class TauGUI:
 
         tk.Label(self.left_frame, text="REPL Output", bg=COLORS["blue"], fg=COLORS["crust"]).pack(fill=tk.X)
         
-        # Use styled helper
         repl_container, self.repl_log = self._create_styled_text_widget(self.left_frame)
         repl_container.pack(fill=tk.BOTH, expand=True, pady=(0, 5))
 
@@ -232,8 +230,7 @@ class TauGUI:
 
         # COLUMN 2: Script Viewer (Initially Hidden)
         self.mid_frame = tk.Frame(self.paned, bg=COLORS["base"])
-        # We do NOT add it to self.paned yet.
-
+        
         tk.Label(self.mid_frame, text="Script Viewer", bg=COLORS["sapphire"], fg=COLORS["crust"]).pack(fill=tk.X)
         
         script_container, self.script_view = self._create_styled_text_widget(self.mid_frame)
@@ -318,6 +315,7 @@ class TauGUI:
         self.script_view.delete('1.0', tk.END)
         self.script_view.config(state='disabled')
         
+        # Check if the pane is currently being shown before trying to hide it
         if str(self.mid_frame) in self.paned.panes():
             self.paned.forget(self.mid_frame)
 
@@ -331,36 +329,40 @@ class TauGUI:
             self.script_view.see(start)
 
     def execute_next_step(self):
+        # 1. Skip empty lines
         while self.current_step_index < len(self.script_lines):
             line = self.script_lines[self.current_step_index]
             if line.strip(): break
             self.current_step_index += 1 
         
+        # 2. Check if we reached the end
         if self.current_step_index >= len(self.script_lines):
             self._finish_script()
             return
 
+        # 3. Execute the current command
         command = self.script_lines[self.current_step_index]
         self.send_command(command)
         self.current_step_index += 1
         
-        # Check next line
+        # 4. Check if there are any lines left after this one
         temp_index = self.current_step_index
         while temp_index < len(self.script_lines):
             if self.script_lines[temp_index].strip(): break
             temp_index += 1
         
         if temp_index < len(self.script_lines):
+             # Update highlighting for the NEXT step
              self.highlight_current_line()
              self.script_status.config(text=f"Step: {self.current_step_index}/{len(self.script_lines)}")
         else:
+             # No more lines? Finish now.
              self._finish_script()
 
     def _finish_script(self):
         self.script_status.config(text="Script finished", fg=COLORS["green"])
         self.step_btn.config(state="disabled")
-        # Clear screen and Hide Pane
-        self.close_script_viewer()
+        self.close_script_viewer() # This hides the screen
 
     def send_command(self, command):
         if self.process and self.process.poll() is None:
@@ -420,7 +422,7 @@ class TauGUI:
         if widget:
             widget.config(state='normal')
             if widget_name == "repl" and text.startswith("Tau responds: "):
-                prefix = "Tau responds: "
+                prefix = "Tau responds:" + "\n"
                 content = text[len(prefix):] 
                 widget.insert(tk.END, prefix, "prefix")
                 widget.insert(tk.END, content + "\n", tag)
