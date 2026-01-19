@@ -2,10 +2,9 @@
 
 This project is a feature-rich Graphical User Interface (GUI) for interacting with the **[Tau-lang REPL](https://github.com/IDNI/tau-lang)**. Built with Python's Tkinter, it transforms the command-line experience into a modern, customizable environment with debugging tools and script execution capabilities.
 
-This project is heavily inspired by Taumorrow´s Tau-Runner. Please see: https://github.com/taumorrow/tau-lang-demos
+This project is heavily inspired by Taumorrow´s Windows Tau-Runner. Please see: https://github.com/taumorrow/tau-lang-demos
 
 <img width="1796" height="839" alt="image" src="https://github.com/user-attachments/assets/5172c2de-f2ff-4208-bfde-b6f989bcb2f9" />
-
 
 ## Features
 
@@ -33,15 +32,28 @@ This project is heavily inspired by Taumorrow´s Tau-Runner. Please see: https:/
 
 ---
 
-## Requirements
+## 📥 Quick Start (No Python Required)
 
+You can run Tau-GUI without installing Python by downloading the pre-built executable:
+
+1.  Visit the **[Releases Page](https://github.com/your-username/tau-gui/releases)**.
+2.  Download the latest executable for your operating system.
+3.  Run the application directly.
+
+*(Note: You still need the compiled **`tau` executable** from the [Tau-lang repository](https://github.com/IDNI/tau-lang) on your machine. The GUI will prompt you to locate it on the first run.)*
+
+---
+
+## Development / Running from Source
+
+If you prefer to run the Python script directly or contribute to development, follow the steps below.
+
+### Requirements
 * **Python 3.7+**
 * **Tkinter** (Included with standard Python installations)
 * The compiled **`tau` executable** from the [Tau-lang repository](https://github.com/IDNI/tau-lang).
 
----
-
-## Installation
+### Installation
 
 1.  **Clone the repository:**
     ```bash
@@ -55,26 +67,10 @@ This project is heavily inspired by Taumorrow´s Tau-Runner. Please see: https:/
     ```
     *(Note: On some Linux distributions, you may need to install Tkinter separately: `sudo apt-get install python3-tk`)*
 
----
-
-## Configuration
-
-The application needs to know where your `tau` executable is located.
-
-1.  **First Run**: When you launch the app, if `tau` is not found, it will automatically prompt you to select the executable file.
-2.  **Manual Change**: You can change the path at any time by clicking the **"⚙ Config"** button in the top toolbar.
-3.  **Config File**: The path is saved in `config.ini`:
-    ```ini
-    [Paths]
-    TauExecutable = C:\Path\To\your\tau.exe
-    ```
-
----
-
-## Usage
+### Usage
 
 Run the application:
 ```bash
-
 python tau_gui.py
+
 
