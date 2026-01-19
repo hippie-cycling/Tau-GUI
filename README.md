@@ -1,18 +1,38 @@
-# Tau Lang GUI Wrapper (WIP)
+# Tau Lang GUI Wrapper
 
-This project is a multi-panel Graphical User Interface (GUI) for interacting with the **[Tau-lang REPL](https://github.com/IDNI/tau-lang)**. Built with Python's Tkinter, it provides a user-friendly environment with separate panels for REPL interaction, command history, and a detailed debug log.
+This project is a feature-rich Graphical User Interface (GUI) for interacting with the **[Tau-lang REPL](https://github.com/IDNI/tau-lang)**. Built with Python's Tkinter, it transforms the command-line experience into a modern, customizable environment with debugging tools and script execution capabilities.
 
-* **Multi-Panel Layout**: A clean interface with dedicated, scrollable panels for REPL output, command history, and a debug log.
-* **System Stats**: A live display of your current CPU and RAM usage.
-* **Debug & Timing**: The debug panel shows a timestamped log of every command sent to the Tau REPL and every response received, including execution time.
-* **Easy Configuration**: Built-in file picker to locate your Tau executable and save it automatically.
+
+## Features
+
+### 🖥️ Modern GUI Layout
+* **Three-Pane Interface**:
+    * **Left**: Main REPL interaction window.
+    * **Middle**: Dynamic **Script Viewer** (appears when a script is loaded).
+    * **Right**: Command History and detailed Debug Log.
+* **System Stats**: Live CPU and RAM usage monitoring in the footer.
+
+### 🎨 Fully Customizable Themes
+* **Theme Editor**: Built-in graphical editor to change the color of every UI element.
+* **Presets**: Comes with a polished **Monokai** dark theme by default.
+* **Persistency**: Your custom color schemes are automatically saved to `config.ini`.
+
+### ⏯️ Script Debugger (Stepper)
+* **Load Scripts**: Open `.tau` files directly from the interface.
+* **Step-by-Step Execution**: Execute your script line-by-line using the **"Step Next ▶"** button.
+* **Visual Tracking**: The current line to be executed is highlighted in the script viewer.
+
+### 🛠️ Developer Tools
+* **Debug Log**: Timestamped log of exactly what is sent to and received from the Tau process (including execution time).
+* **Smart Filtering**: Automatically cleans up raw REPL output (removing echoes and prompts) for a cleaner reading experience.
+* **Clear Command**: Supports typing `clear` or `cls` to wipe the REPL screen.
 
 ---
 
 ## Requirements
 
 * **Python 3.7+**
-* **Tkinter** (Usually included with Python standard installations).
+* **Tkinter** (Included with standard Python installations)
 * The compiled **`tau` executable** from the [Tau-lang repository](https://github.com/IDNI/tau-lang).
 
 ---
@@ -21,42 +41,34 @@ This project is a multi-panel Graphical User Interface (GUI) for interacting wit
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
-    cd your-repo-name
+    git clone [https://github.com/your-username/tau-gui.git](https://github.com/your-username/tau-gui.git)
+    cd tau-gui
     ```
 
-2.  **Install the required Python libraries:**
-    This project depends on `psutil` for system stats.
+2.  **Install dependencies:**
     ```bash
     pip install psutil
     ```
-    *(Note: If you are on Linux and get an error about missing `tkinter`, you may need to install it via your package manager, e.g., `sudo apt-get install python3-tk`)*.
+    *(Note: On some Linux distributions, you may need to install Tkinter separately: `sudo apt-get install python3-tk`)*
 
 ---
 
-## Configuration & Usage
+## Configuration
 
-To run the GUI, the script must know where to find the `tau` executable. There are several ways to configure this.
+The application needs to know where your `tau` executable is located.
 
-### Option 1: GUI Configuration (Recommended)
+1.  **First Run**: When you launch the app, if `tau` is not found, it will automatically prompt you to select the executable file.
+2.  **Manual Change**: You can change the path at any time by clicking the **"⚙ Config"** button in the top toolbar.
+3.  **Config File**: The path is saved in `config.ini`:
+    ```ini
+    [Paths]
+    TauExecutable = C:\Path\To\your\tau.exe
+    ```
 
-When you run the application for the first time, if the `tau` executable is not found, the application will automatically open a file dialog asking you to locate it.
+---
 
-* Select your `tau` or `tau.exe` file.
-* The path will be automatically saved to `config.ini` for future runs.
-* You can change this path at any time via the menu bar: **File > Configure Tau Path...**
+## Usage
 
-### Option 2: Configuration File (config.ini)
-
-For a manual setting, you can edit the `config.ini` file directly.
-
-1.  Open `config.ini` in a text editor.
-2.  Set the value of `TauExecutable` to the full path of your tau executable.
-    * *Important: Do not use quotes around the path.*
-
-### Option 3: Command-Line Argument
-
-You can provide the path directly when you run the script. This overrides the config file.
-
+Run the application:
 ```bash
-python tau_gui.py --tau-path "C:\path\to\your\tau.exe"
+python tau_gui.py
