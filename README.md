@@ -34,10 +34,10 @@ This project is heavily inspired by Taumorrow´s Windows Tau-Runner. Please see:
 
 ## 📥 Quick Start (No Python Required)
 
-You can run Tau-GUI without installing Python by downloading the pre-built executable:
+You can run Tau-GUI without installing Python by downloading the pre-built Linux executable:
 
 1.  Visit the **[Releases Page]([https://github.com/your-username/tau-gui/releases](https://github.com/hippie-cycling/Tau-GUI/releases/tag/Tau-GUI_Linux))**.
-2.  Download the latest executable for your operating system.
+2.  Download the latest executable.
 3.  Run the application directly.
 
 *(Note: You still need the compiled **`tau` executable** from the [Tau-lang repository](https://github.com/IDNI/tau-lang) on your machine. The GUI will prompt you to locate it on the first run.)*
@@ -72,6 +72,7 @@ If you prefer to run the Python script directly or contribute to development, fo
 Run the application:
 ```bash
 python tau_gui.py
+
 
 
 
