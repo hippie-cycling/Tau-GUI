@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext, font, filedialog, messagebox
+from tkinter import ttk, font, filedialog, messagebox
 import subprocess
 import threading
 import queue
@@ -25,7 +25,11 @@ COLORS = {
     "mauve": "#cba6f7",
     "pink": "#f5c2e7",
     "crust": "#11111b",
-    "button_active": "#585b70"
+    "button_active": "#585b70",
+    "highlight_line": "#2a2d3d",
+    "scrollbar_bg": "#0b1a2e",
+    "scrollbar_trough": "#11111b",
+    "scrollbar_grip": "#45475a"
 }
 
 CONFIG_FILE = 'config.ini'
@@ -74,7 +78,7 @@ class TauGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Tau Lang GUI")
-        self.root.geometry("1100x700") # Made slightly wider to fit buttons
+        self.root.geometry("1400x800")
         self.root.configure(bg=COLORS["base"])
 
         self.msg_queue = queue.Queue()
@@ -102,9 +106,24 @@ class TauGUI:
     def _setup_styles(self):
         style = ttk.Style()
         style.theme_use('clam')
+        
+        # General Styles
         style.configure("TFrame", background=COLORS["base"])
         style.configure("TLabel", background=COLORS["base"], foreground=COLORS["text"])
         
+        # Custom Scrollbar Style (Dark Theme)
+        style.configure("Vertical.TScrollbar",
+            background=COLORS["scrollbar_grip"],
+            troughcolor=COLORS["scrollbar_trough"],
+            bordercolor=COLORS["base"],
+            arrowcolor=COLORS["text"],
+            lightcolor=COLORS["scrollbar_grip"],
+            darkcolor=COLORS["scrollbar_grip"]
+        )
+        style.map("Vertical.TScrollbar",
+            background=[('active', COLORS["button_active"]), ('pressed', COLORS["sapphire"])]
+        )
+
         # Custom Button Style
         style.configure("Action.TButton", 
             background=COLORS["surface1"], 
@@ -120,14 +139,42 @@ class TauGUI:
         
         self.mono_font = font.Font(family="Courier New", size=10)
         self.ui_font = font.Font(family="Helvetica", size=10)
+        self.tiny_font = font.Font(family="Helvetica", size=8)
 
     def _build_menu(self):
         menubar = tk.Menu(self.root)
         self.root.config(menu=menubar)
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=file_menu)
-        # Only Exit remains in the menu
         file_menu.add_command(label="Exit", command=self.root.quit)
+
+    def _create_styled_text_widget(self, parent, height=None):
+        """Helper to create a Text widget with a styled dark scrollbar."""
+        container = tk.Frame(parent, bg=COLORS["base"])
+        
+        # Styled Scrollbar
+        scrollbar = ttk.Scrollbar(container, orient="vertical", style="Vertical.TScrollbar")
+        
+        # Text Widget
+        text_widget = tk.Text(
+            container, 
+            bg=COLORS["base"], 
+            fg=COLORS["text"],
+            insertbackground="white", 
+            font=self.mono_font,
+            state='disabled',
+            height=height if height else 1,
+            yscrollcommand=scrollbar.set,
+            relief="flat",
+            padx=5, pady=5
+        )
+        
+        scrollbar.config(command=text_widget.yview)
+        
+        scrollbar.pack(side="right", fill="y")
+        text_widget.pack(side="left", fill="both", expand=True)
+        
+        return container, text_widget
 
     def _build_layout(self):
         main_container = ttk.Frame(self.root)
@@ -135,101 +182,100 @@ class TauGUI:
 
         # --- Top Bar ---
         top_bar = tk.Frame(main_container, bg=COLORS["base"])
-        top_bar.pack(fill=tk.X, pady=(0, 10))
+        top_bar.pack(fill=tk.X, pady=(0, 5))
         
-        # LEFT: Stats & Config Button
-        self.stats_label = tk.Label(
-            top_bar, 
-            text="CPU: 0.0%  RAM: 0.0%", 
-            bg=COLORS["surface1"], fg=COLORS["text"],
-            font=self.ui_font, padx=10, pady=5
-        )
-        self.stats_label.pack(side=tk.LEFT)
-
         self.config_btn = ttk.Button(
-            top_bar,
-            text="⚙ Config Tau",
-            style="Action.TButton",
-            command=self.prompt_for_executable
+            top_bar, text="⚙ Config Tau", style="Action.TButton", command=self.prompt_for_executable
         )
-        self.config_btn.pack(side=tk.LEFT, padx=10)
+        self.config_btn.pack(side=tk.LEFT)
 
-        # RIGHT: Script Status, Next Step, Load Script
-        # Note: packing side=RIGHT fills from the right edge inwards.
-        
         self.script_status = tk.Label(
-            top_bar,
-            text="No script loaded",
-            bg=COLORS["base"], fg=COLORS["surface1"],
-            font=self.ui_font
+            top_bar, text="No script loaded", bg=COLORS["base"], fg=COLORS["surface1"], font=self.ui_font
         )
         self.script_status.pack(side=tk.RIGHT, padx=10)
 
         self.step_btn = ttk.Button(
-            top_bar, 
-            text="Step Next ▶", 
-            style="Action.TButton",
-            state="disabled",
-            command=self.execute_next_step
+            top_bar, text="Step Next ▶", style="Action.TButton", state="disabled", command=self.execute_next_step
         )
         self.step_btn.pack(side=tk.RIGHT, padx=5)
 
         self.load_btn = ttk.Button(
-            top_bar,
-            text="📂 Load Script",
-            style="Action.TButton",
-            command=self.load_script
+            top_bar, text="📂 Load Script", style="Action.TButton", command=self.load_script
         )
         self.load_btn.pack(side=tk.RIGHT, padx=5)
 
-        # --- Split View ---
-        paned = tk.PanedWindow(main_container, orient=tk.HORIZONTAL, bg=COLORS["base"], sashwidth=4)
-        paned.pack(fill=tk.BOTH, expand=True)
+        # --- Middle Split View ---
+        self.paned = tk.PanedWindow(main_container, orient=tk.HORIZONTAL, bg=COLORS["base"], sashwidth=4, sashrelief=tk.FLAT)
+        self.paned.pack(fill=tk.BOTH, expand=True)
 
-        # LEFT COLUMN
-        left_frame = tk.Frame(paned, bg=COLORS["base"])
-        paned.add(left_frame, minsize=400)
+        # COLUMN 1: REPL (Left)
+        self.left_frame = tk.Frame(self.paned, bg=COLORS["base"])
+        self.paned.add(self.left_frame, minsize=500, width=600, stretch="always")
 
-        tk.Label(left_frame, text="REPL Output", bg=COLORS["blue"], fg=COLORS["crust"]).pack(fill=tk.X)
-        self.repl_log = scrolledtext.ScrolledText(
-            left_frame, bg=COLORS["base"], fg=COLORS["text"], 
-            insertbackground="white", font=self.mono_font, state='disabled'
-        )
-        self.repl_log.pack(fill=tk.BOTH, expand=True, pady=(0, 5))
+        tk.Label(self.left_frame, text="REPL Output", bg=COLORS["blue"], fg=COLORS["crust"]).pack(fill=tk.X)
         
+        # Use styled helper
+        repl_container, self.repl_log = self._create_styled_text_widget(self.left_frame)
+        repl_container.pack(fill=tk.BOTH, expand=True, pady=(0, 5))
+
         self.repl_log.tag_config("error", foreground=COLORS["red"])
         self.repl_log.tag_config("info", foreground=COLORS["teal"])
         self.repl_log.tag_config("prefix", foreground=COLORS["sapphire"]) 
 
         self.input_entry = tk.Entry(
-            left_frame, bg=COLORS["surface1"], fg=COLORS["text"], 
+            self.left_frame, bg=COLORS["surface1"], fg=COLORS["text"], 
             insertbackground="white", font=self.mono_font
         )
         self.input_entry.pack(fill=tk.X, ipady=5)
         self.input_entry.bind("<Return>", self.on_submit)
         self.input_entry.focus_set()
 
-        # RIGHT COLUMN
-        right_frame = tk.Frame(paned, bg=COLORS["base"])
-        paned.add(right_frame, minsize=300)
+        # COLUMN 2: Script Viewer (Initially Hidden)
+        self.mid_frame = tk.Frame(self.paned, bg=COLORS["base"])
+        # We do NOT add it to self.paned yet.
 
-        tk.Label(right_frame, text="History", bg=COLORS["green"], fg=COLORS["crust"]).pack(fill=tk.X)
-        self.history_log = scrolledtext.ScrolledText(
-            right_frame, bg=COLORS["base"], fg=COLORS["text"], 
-            font=self.mono_font, state='disabled', height=10
-        )
-        self.history_log.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        tk.Label(self.mid_frame, text="Script Viewer", bg=COLORS["sapphire"], fg=COLORS["crust"]).pack(fill=tk.X)
+        
+        script_container, self.script_view = self._create_styled_text_widget(self.mid_frame)
+        script_container.pack(fill=tk.BOTH, expand=True)
+        self.script_view.config(cursor="arrow")
+        self.script_view.tag_config("current_line", background=COLORS["surface1"], foreground="#ffffff")
 
-        tk.Label(right_frame, text="Debug Log", bg=COLORS["teal"], fg=COLORS["crust"]).pack(fill=tk.X)
-        self.debug_log = scrolledtext.ScrolledText(
-            right_frame, bg=COLORS["base"], fg=COLORS["text"], 
-            font=self.mono_font, state='disabled', height=10
-        )
-        self.debug_log.pack(fill=tk.BOTH, expand=True)
+        # COLUMN 3: History & Debug (Right)
+        self.right_frame = tk.Frame(self.paned, bg=COLORS["base"])
+        self.paned.add(self.right_frame, minsize=250, width=300, stretch="never")
+
+        right_pane_vert = tk.PanedWindow(self.right_frame, orient=tk.VERTICAL, bg=COLORS["base"], sashwidth=4)
+        right_pane_vert.pack(fill=tk.BOTH, expand=True)
+
+        # History
+        hist_frame = tk.Frame(right_pane_vert, bg=COLORS["base"])
+        right_pane_vert.add(hist_frame, height=200)
+        tk.Label(hist_frame, text="History", bg=COLORS["green"], fg=COLORS["crust"]).pack(fill=tk.X)
+        
+        hist_container, self.history_log = self._create_styled_text_widget(hist_frame)
+        hist_container.pack(fill=tk.BOTH, expand=True)
+
+        # Debug
+        debug_frame = tk.Frame(right_pane_vert, bg=COLORS["base"])
+        right_pane_vert.add(debug_frame, height=200)
+        tk.Label(debug_frame, text="Debug Log", bg=COLORS["teal"], fg=COLORS["crust"]).pack(fill=tk.X)
+        
+        debug_container, self.debug_log = self._create_styled_text_widget(debug_frame)
+        debug_container.pack(fill=tk.BOTH, expand=True)
+        
         self.debug_log.tag_config("send", foreground=COLORS["pink"])
         self.debug_log.tag_config("recv", foreground=COLORS["mauve"])
 
-    # --- Script Loading Logic ---
+        # --- Footer ---
+        footer_bar = tk.Frame(main_container, bg=COLORS["base"])
+        footer_bar.pack(fill=tk.X, pady=(5, 0), side=tk.BOTTOM)
+
+        self.stats_label = tk.Label(
+            footer_bar, text="CPU: 0.0%  RAM: 0.0%", bg=COLORS["base"], fg=COLORS["surface1"], font=self.tiny_font
+        )
+        self.stats_label.pack(side=tk.RIGHT)
+
     def load_script(self):
         initial_dir = Path.cwd()
         filename = filedialog.askopenfilename(
@@ -242,48 +288,82 @@ class TauGUI:
                 with open(filename, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                # Split by lines and filter out empty ones
-                self.script_lines = [line.strip() for line in content.splitlines() if line.strip()]
+                self.script_lines = [line for line in content.splitlines()]
                 self.current_step_index = 0
                 
-                if not self.script_lines:
-                    messagebox.showinfo("Empty File", "The selected file is empty or contains only whitespace.")
+                # Show the Middle Pane if not visible
+                if str(self.mid_frame) not in self.paned.panes():
+                    self.paned.add(self.mid_frame, after=self.left_frame, minsize=250, width=300, stretch="never")
+
+                self.script_view.config(state='normal')
+                self.script_view.delete('1.0', tk.END)
+                self.script_view.insert('1.0', content)
+                self.script_view.config(state='disabled')
+                
+                if not any(line.strip() for line in self.script_lines):
+                    messagebox.showinfo("Empty File", "The selected file is empty.")
                     return
 
-                # Update UI
                 self.step_btn.config(state="normal")
-                self.script_status.config(text=f"Loaded: {Path(filename).name} (0/{len(self.script_lines)})", fg=COLORS["sapphire"])
+                self.script_status.config(text=f"Loaded: {Path(filename).name}", fg=COLORS["sapphire"])
                 self.log_to_widget("repl", f"--- Script Loaded: {Path(filename).name} ---", "info")
+                self.highlight_current_line()
                 
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to read file:\n{e}")
 
+    def close_script_viewer(self):
+        """Clears content and hides the script viewer pane."""
+        self.script_view.config(state='normal')
+        self.script_view.delete('1.0', tk.END)
+        self.script_view.config(state='disabled')
+        
+        if str(self.mid_frame) in self.paned.panes():
+            self.paned.forget(self.mid_frame)
+
+    def highlight_current_line(self):
+        self.script_view.tag_remove("current_line", "1.0", tk.END)
+        if self.current_step_index < len(self.script_lines):
+            line_num = self.current_step_index + 1
+            start = f"{line_num}.0"
+            end = f"{line_num}.end"
+            self.script_view.tag_add("current_line", start, end)
+            self.script_view.see(start)
+
     def execute_next_step(self):
-        if not self.script_lines or self.current_step_index >= len(self.script_lines):
-            self.step_btn.config(state="disabled")
-            self.script_status.config(text="Script finished", fg=COLORS["green"])
+        while self.current_step_index < len(self.script_lines):
+            line = self.script_lines[self.current_step_index]
+            if line.strip(): break
+            self.current_step_index += 1 
+        
+        if self.current_step_index >= len(self.script_lines):
+            self._finish_script()
             return
 
-        # Get command
         command = self.script_lines[self.current_step_index]
+        self.send_command(command)
         self.current_step_index += 1
         
-        # Update Status
-        self.script_status.config(text=f"Step: {self.current_step_index}/{len(self.script_lines)}")
+        # Check next line
+        temp_index = self.current_step_index
+        while temp_index < len(self.script_lines):
+            if self.script_lines[temp_index].strip(): break
+            temp_index += 1
         
-        # Send to Process (simulates typing)
-        self.send_command(command)
-        
-        # Check if finished after this step
-        if self.current_step_index >= len(self.script_lines):
-            self.step_btn.config(state="disabled")
-            self.script_status.config(text="Script finished", fg=COLORS["green"])
+        if temp_index < len(self.script_lines):
+             self.highlight_current_line()
+             self.script_status.config(text=f"Step: {self.current_step_index}/{len(self.script_lines)}")
+        else:
+             self._finish_script()
 
-    # --- Core Logic ---
+    def _finish_script(self):
+        self.script_status.config(text="Script finished", fg=COLORS["green"])
+        self.step_btn.config(state="disabled")
+        # Clear screen and Hide Pane
+        self.close_script_viewer()
+
     def send_command(self, command):
-        """Centralized method to send commands."""
         if self.process and self.process.poll() is None:
-            # Handle clear command
             if command.strip().lower() in ["clear", "cls"]:
                 self.repl_log.config(state='normal')
                 self.repl_log.delete('1.0', tk.END)
@@ -294,7 +374,6 @@ class TauGUI:
                 except Exception: pass
                 return
 
-            # Normal command
             self.log_to_widget("history", f"» {command}")
             self.log_to_widget("debug", f"[{datetime.now().time()}] ▶ SEND: {command}", "send")
             
@@ -340,7 +419,6 @@ class TauGUI:
         widget = widget_map.get(widget_name)
         if widget:
             widget.config(state='normal')
-            
             if widget_name == "repl" and text.startswith("Tau responds: "):
                 prefix = "Tau responds: "
                 content = text[len(prefix):] 
@@ -348,7 +426,6 @@ class TauGUI:
                 widget.insert(tk.END, content + "\n", tag)
             else:
                 widget.insert(tk.END, text + "\n", tag)
-                
             widget.see(tk.END)
             widget.config(state='disabled')
 
@@ -383,7 +460,6 @@ class TauGUI:
                 if line:
                     cleaned_line = strip_ansi_codes(line.strip())
                     if not cleaned_line: continue
-
                     prompt_str = "tau>"
                     
                     is_prompt = cleaned_line == prompt_str
@@ -393,8 +469,7 @@ class TauGUI:
                     is_prompt_and_echo = self.last_command is not None and cleaned_line == f"{prompt_str} {self.last_command}"
 
                     if is_echo or is_prompt_and_echo:
-                        if is_echo or is_prompt_and_echo: 
-                            self.last_command = None
+                        if is_echo or is_prompt_and_echo: self.last_command = None
                         is_response_start = True 
                         continue
 
