@@ -1,5 +1,7 @@
 #Test .tau program to test script functionality
+#Basic commands tested
 version
 defs
 history
+#Now we clear the screen
 clear

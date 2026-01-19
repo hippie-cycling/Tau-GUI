@@ -1,7 +1,6 @@
 # Tau GUI Configuration
 config.ini
 .tau_history
-test.tau
 
 # Python generated files (Recommended)
 __pycache__/
