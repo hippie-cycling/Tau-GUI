@@ -2,6 +2,7 @@
 
 This project is a feature-rich Graphical User Interface (GUI) for interacting with the **[Tau-lang REPL](https://github.com/IDNI/tau-lang)**. Built with Python's Tkinter, it transforms the command-line experience into a modern, customizable environment with debugging tools and script execution capabilities.
 
+This project is heavily inspired by Taumorrow´s Tau-Runner. Please see: https://github.com/taumorrow/tau-lang-demos
 
 ## Features
 
@@ -71,4 +72,5 @@ The application needs to know where your `tau` executable is located.
 
 Run the application:
 ```bash
+
 python tau_gui.py
