@@ -1,0 +1,7 @@
+# Tau GUI Configuration
+config.ini
+.tau_history
+
+# Python generated files (Recommended)
+__pycache__/
+*.pyc
