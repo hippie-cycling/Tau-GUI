@@ -4,7 +4,7 @@ This project is a feature-rich Graphical User Interface (GUI) for interacting wi
 
 This project is heavily inspired by Taumorrow´s Windows Tau-Runner. Please see: https://github.com/taumorrow/tau-lang-demos
 
-<img width="743" height="549" alt="image" src="https://github.com/user-attachments/assets/4d634624-6b8e-4905-b4bd-7ec02dc15377" />
+<img width="776" height="549" alt="image" src="https://github.com/user-attachments/assets/d03306b7-093d-4013-a528-6e0526d40c2c" />
 
 ## Features
 
@@ -72,6 +72,7 @@ If you prefer to run the Python script directly or contribute to development, fo
 Run the application:
 ```bash
 python tau_gui.py
+
 
 
 
