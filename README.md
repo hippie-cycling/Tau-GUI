@@ -4,26 +4,26 @@ This project is a feature-rich Graphical User Interface (GUI) for interacting wi
 
 This project is heavily inspired by Taumorrow´s Windows Tau-Runner. Please see: https://github.com/taumorrow/tau-lang-demos
 
-<img width="1796" height="839" alt="image" src="https://github.com/user-attachments/assets/5172c2de-f2ff-4208-bfde-b6f989bcb2f9" />
+<img width="743" height="549" alt="image" src="https://github.com/user-attachments/assets/4d634624-6b8e-4905-b4bd-7ec02dc15377" />
 
 ## Features
 
 ### 🖥️ Modern GUI Layout
 * **Three-Pane Interface**:
     * **Left**: Main REPL interaction window.
-    * **Middle**: Dynamic **Script Viewer** (appears when a script is loaded).
+    * **Middle**: Dynamic **.tau Program Viewer** (appears when a .tau program is loaded).
     * **Right**: Command History and detailed Debug Log.
 * **System Stats**: Live CPU and RAM usage monitoring in the footer.
 
 ### 🎨 Fully Customizable Themes
 * **Theme Editor**: Built-in graphical editor to change the color of every UI element.
-* **Presets**: Comes with a polished **Monokai** dark theme by default.
 * **Persistency**: Your custom color schemes are automatically saved to `config.ini`.
 
 ### ⏯️ Script Debugger (Stepper)
 * **Load Scripts**: Open `.tau` files directly from the interface.
 * **Step-by-Step Execution**: Execute your script line-by-line using the **"Step Next ▶"** button.
-* **Visual Tracking**: The current line to be executed is highlighted in the script viewer.
+* **Visual Tracking**: The current line to be executed is highlighted in the script viewer for easy follow.
+* **Comment Tracking**: Comments are displayed in light gray.
 
 ### 🛠️ Developer Tools
 * **Debug Log**: Timestamped log of exactly what is sent to and received from the Tau process (including execution time).
@@ -32,7 +32,7 @@ This project is heavily inspired by Taumorrow´s Windows Tau-Runner. Please see:
 
 ---
 
-## 📥 Quick Start (No Python Required)
+## 📥 Executable Quick Start (No Python Required)
 
 You can run Tau-GUI without installing Python by downloading the pre-built Linux or Windows executable:
 
@@ -72,6 +72,7 @@ If you prefer to run the Python script directly or contribute to development, fo
 Run the application:
 ```bash
 python tau_gui.py
+
 
 
 
