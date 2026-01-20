@@ -18,7 +18,7 @@ DEFAULT_THEME = {
     "bg_surface0": "#3E3D32",
     "bg_surface1": "#3E3D32",
     "fg_text": "#F8EFBA",
-    "primary": "#BDC581",       # Used for Prompt/Header/Focus
+    "primary": "#6BCBBD",       # Used for Prompt/Header/Focus
     "secondary": "#66d9ef",     # Used for extra accents
     "repl_header": "#EAB543",
     "history_header": "#CAD3C8",
@@ -585,13 +585,7 @@ class TauGUI:
                 if line:
                     cleaned_line = strip_ansi_codes(line.strip())
                     if not cleaned_line: continue
-                    if cleaned_line == "tau>": continue 
-                    
-                    is_echo = self.last_command is not None and cleaned_line == self.last_command
-                    is_prompt_and_echo = self.last_command is not None and cleaned_line == f"tau> {self.last_command}"
-                    if is_echo or is_prompt_and_echo:
-                        if is_echo or is_prompt_and_echo: self.last_command = None
-                        continue
+                    if cleaned_line == "tau>": continue
 
                     duration = 0.0
                     if self.command_start_time:
