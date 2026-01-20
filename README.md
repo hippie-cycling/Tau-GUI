@@ -1,4 +1,4 @@
-# Tau Lang GUI Wrapper
+# Tau-Lang GUI Wrapper
 
 This project is a feature-rich Graphical User Interface (GUI) for interacting with the **[Tau-lang REPL](https://github.com/IDNI/tau-lang)**. Built with Python's Tkinter, it transforms the command-line experience into a modern, customizable environment with debugging tools and script execution capabilities.
 
@@ -72,9 +72,6 @@ If you prefer to run the Python script directly or contribute to development, fo
 Run the application:
 ```bash
 python tau_gui.py
-
-
-
 
 
 
